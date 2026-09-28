@@ -276,12 +276,13 @@ async function start(){
   $('login').hidden=true; $('app').hidden=false; $('logout').hidden=false;
   try{
     const r=await gh('days');
+    if(r.status===404){ const m=await diagnose(token); return showLogin(m||'記事の一覧が見つからなかった'); }
     if(!r.ok) throw new Error('HTTP '+r.status);
     dates=(await r.json()).map(f=>f.name.replace(/\.json$/,'')).filter(n=>/^\d{4}-\d{2}-\d{2}$/.test(n)).sort().reverse();
     if(!dates.length){$('statustxt').textContent='まだ記事がない。毎朝9時に届く';return;}
     idx=0; await openDay();
   }catch(e){
-    if(e instanceof AuthError) return showLogin('トークンが無効か、kiji-data への権限が足りない。Contents の Read and write を付けたトークンを入れてほしい');
+    if(e instanceof AuthError){ const m=await diagnose(token); return showLogin(m||'トークンが無効か、権限が足りない'); }
     $('statustxt').textContent='読み込めなかった。通信を確認してページを開き直してほしい';
   }
 }
@@ -290,11 +291,31 @@ function showLogin(msg){
   $('loginerr').hidden=!msg; $('loginerr').textContent=msg?'＊'+msg:'';
   $('token').focus();
 }
-$('login').addEventListener('submit',e=>{
+// トークンを3段階で確かめ、どこで止まったかを具体的に返す
+async function diagnose(t){
+  const h={'Authorization':'Bearer '+t,'Accept':'application/vnd.github+json'};
+  const get=u=>fetch('https://api.github.com/'+u,{cache:'no-store',headers:h});
+  let r;
+  try{ r=await get('user'); }catch(e){ return '通信できなかった。ネット接続を確認してほしい'; }
+  if(r.status===401) return 'トークンが認識されない（HTTP 401）。貼り付けが途中で切れていないか、期限切れでないかを確認してほしい';
+  if(r.ok){ const u=await r.json(); if(u.login&&u.login!==OWNER) return `このトークンは ${u.login} のもの。${OWNER} のアカウントで作ったトークンを入れてほしい`; }
+  r=await get(`repos/${OWNER}/${REPO}`);
+  if(r.status===404) return `トークンが ${REPO} を見られない（HTTP 404）。トークン設定の「Repository access」で「Only select repositories」を選び、${REPO} を追加してほしい`;
+  if(!r.ok) return `リポジトリの確認で失敗した（HTTP ${r.status}）`;
+  r=await get(`repos/${OWNER}/${REPO}/contents/days`);
+  if(r.status===403) return 'Contents の権限が無い（HTTP 403）。トークン設定の「Permissions」で「Contents」を「Read and write」にしてほしい';
+  if(!r.ok) return `記事の一覧を読めなかった（HTTP ${r.status}）`;
+  return null;
+}
+$('login').addEventListener('submit',async e=>{
   e.preventDefault();
-  const v=$('token').value.trim();
-  if(!v){$('loginerr').hidden=false;$('loginerr').textContent='＊トークンを入れてほしい';return;}
-  token=v; store.set(v); $('token').value=''; start();
+  const v=$('token').value.replace(/\s/g,'');
+  const err=$('loginerr');
+  if(!v){err.hidden=false;err.textContent='＊トークンを入れてほしい';return;}
+  err.hidden=false; err.textContent='確認しています';
+  const msg=await diagnose(v);
+  if(msg){err.textContent='＊'+msg;return;}
+  err.hidden=true; token=v; store.set(v); $('token').value=''; start();
 });
 $('logout').onclick=()=>{store.del(); token=null; showLogin();};
 
