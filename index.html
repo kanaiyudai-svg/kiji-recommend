@@ -208,6 +208,7 @@ function render(){
     const stars=[1,2,3,4,5].map(n=>`<button class="star ${r.score>=n?'on':''}" data-id="${esc(it.id)}" data-s="${n}" aria-label="${n}点 ${LABEL[n]}" aria-pressed="${r.score===n}">${svg('star')}</button>`).join('');
     const acts=[];
     if(it.kind==='event'||it.kind==='experiment'||(it.kind==='lab'&&it.when)||(it.kind==='scholarship'&&it.deadline)) acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="calendar" aria-pressed="${!!r.calendar}">${svg(r.calendar?'check':'cal')}${r.calendar?'カレンダー登録を依頼済み':'カレンダーに追加'}</button>`);
+    if(it.kind==='scholarship') acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="interest" aria-pressed="${!!r.interest}">${svg(r.interest?'check':'star')}${r.interest?'興味あり':'興味あり'}</button>`);
     if(it.kind==='experiment') acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="apply" aria-pressed="${!!r.apply}">${svg(r.apply?'check':'send')}${r.apply?'応募を依頼済み':'応募を依頼'}</button>`);
     const dr=r.draft;
     const mailto=dr?`mailto:${encodeURIComponent(dr.to)}?subject=${encodeURIComponent(dr.subject)}&body=${encodeURIComponent(dr.body)}`:'';
@@ -222,6 +223,17 @@ function render(){
           :`<a class="act" href="${esc(gmail)}" target="_blank" rel="noopener">${svg('send')}Gmailで開いて送る</a><a class="act" href="${esc(mailto)}">${svg('send')}ほかのメールアプリで開く</a><button class="act" type="button" data-copy="${esc(it.id)}">${svg('copy')}本文をコピー</button><button class="act" data-id="${esc(it.id)}" data-a="applySent" aria-pressed="false">${svg('check')}送信した</button>`}</div>
         <span class="saved" id="cp-${esc(it.id)}" aria-live="polite"></span>
       </div>`:'';
+    const sch=(it.kind==='scholarship'&&r.interest)?`<div class="draft">
+        <h3>${svg('wallet')}概要と条件の確認</h3>
+        ${r.detail?`<pre class="mail">${esc(r.detail)}</pre>${r.vaultPath?`<p class="reason"><b>Vault</b> ${esc(r.vaultPath)}</p>`:''}`:`<p class="reason">翌朝9時の処理で、Claudeが概要をまとめてこことVaultに載せる。</p>`}
+        ${r.nextStep?`<p class="reason"><b>次にやること</b> ${esc(r.nextStep)}</p>`:''}
+        <div class="actions" role="group" aria-label="条件に合うか">${[['fit','条件に合う'],['unfit','合わない'],['unknown','分からない']].map(([v,l])=>`<button class="act" type="button" data-id="${esc(it.id)}" data-fit="${v}" aria-pressed="${r.fit===v}">${r.fit===v?svg('check'):''}${l}</button>`).join('')}</div>
+        <div class="comment">
+          <label for="f-${esc(it.id)}">条件について（世帯収入、きょうだいの数、気になる点など）</label>
+          <textarea id="f-${esc(it.id)}" data-id="${esc(it.id)}" data-field="fitNote">${esc(r.fitNote??'')}</textarea>
+          <span class="saved" id="sf-${esc(it.id)}"></span>
+        </div>
+      </div>`:'';
     return `<li class="card">
       <div class="meta"><span class="tag">${svg(k[1])}${k[0]}</span><span class="tag">${esc(it.category)}</span>${it.novel?`<span class="tag novel">${svg('compass')}新しい分野</span>`:''}</div>
       <h2><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}${svg('ext')}<span class="sr">新しいタブで開きます</span></a></h2>
@@ -234,6 +246,7 @@ function render(){
         <div class="actions">${acts.join('')}</div>
       </div>
       ${draftHtml}
+      ${sch}
       <div class="comment">
         <label for="c-${esc(it.id)}">ひとこと（もっとこういうのが読みたい、など）</label>
         <textarea id="c-${esc(it.id)}" data-id="${esc(it.id)}">${esc(r.comment??'')}</textarea>
@@ -276,13 +289,14 @@ function save(id,patch,showMsg){
 document.addEventListener('click',e=>{
   const s=e.target.closest('.star'); if(s){const id=s.dataset.id,n=+s.dataset.s; save(id,{score:(ratings[id]?.score===n?0:n)}); return;}
   const c=e.target.closest('button[data-copy]'); if(c){copyDraft(c); return;}
+  const ft=e.target.closest('button[data-fit]'); if(ft){const id=ft.dataset.id,v=ft.dataset.fit; save(id,{fit:(ratings[id]?.fit===v?'':v)}); return;}
   const a=e.target.closest('button.act[data-a]'); if(a){const id=a.dataset.id,k=a.dataset.a; if(!id||!k) return; save(id,{[k]:!ratings[id]?.[k]}); return;}
   const f=e.target.closest('.chipbtn'); if(f){filter=f.dataset.f; document.querySelectorAll('.chipbtn').forEach(b=>b.setAttribute('aria-pressed',b===f)); render(); return;}
 });
 document.addEventListener('focusout',e=>{
   const t=e.target; if(t.tagName!=='TEXTAREA') return;
-  const id=t.dataset.id; if((ratings[id]?.comment||'')===t.value) return;
-  save(id,{comment:t.value},true);
+  const id=t.dataset.id, fld=t.dataset.field||'comment'; if((ratings[id]?.[fld]||'')===t.value) return;
+  save(id,{[fld]:t.value},true);
 });
 $('prev').onclick=()=>{if(idx<dates.length-1){idx++;openDay();}};
 $('next').onclick=()=>{if(idx>0){idx--;openDay();}};
