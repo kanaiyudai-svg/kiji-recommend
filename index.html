@@ -312,6 +312,8 @@ $('login').addEventListener('submit',async e=>{
   const v=$('token').value.replace(/\s/g,'');
   const err=$('loginerr');
   if(!v){err.hidden=false;err.textContent='＊トークンを入れてほしい';return;}
+  if(!/^(github_pat_|ghp_)/.test(v)){err.hidden=false;err.textContent=`＊入れた文字列は「${v.slice(0,12)}…」で始まっている。これはトークンの名前ではないか。必要なのはトークンを作った直後に一度だけ表示される、github_pat_ で始まる90文字ほどの値。`;return;}
+  if(v.startsWith('github_pat_')&&v.length<80){err.hidden=false;err.textContent=`＊トークンが短すぎる（${v.length}文字）。本来は90文字ほどある。コピーが途中で切れている可能性が高い。`;return;}
   err.hidden=false; err.textContent='確認しています';
   const msg=await diagnose(v);
   if(msg){err.textContent='＊'+msg;return;}
