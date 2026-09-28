@@ -75,6 +75,11 @@ ul.list{list-style:none;margin:0;padding:0;display:grid;gap:16px}
 textarea,input[type=password]{font:inherit;font-size:1rem;padding:8px 12px;border:1px solid var(--outline);border-radius:var(--r-s);background:var(--surface);color:var(--text)}
 textarea{min-height:3.2em;resize:vertical}
 .saved{font-size:.875rem;color:var(--text-3);min-height:1.5em}
+.draft{border:1px solid var(--outline);border-radius:var(--r-s);background:var(--surface);padding:16px;display:grid;gap:12px}
+.draft h3{font-size:1rem;line-height:1.4;margin:0;display:flex;align-items:center;gap:6px}
+.mail{white-space:pre-wrap;word-break:break-word;font:inherit;margin:0;padding:12px;border:1px solid var(--outline-variant);border-radius:var(--r-s);background:var(--bg)}
+a.act{text-decoration:none}
+.sent{display:inline-flex;align-items:center;gap:6px;font-size:.875rem;color:var(--text-2)}
 .status{padding:24px;border:1px solid var(--outline);border-radius:var(--r-m);color:var(--text-2);display:flex;gap:8px;align-items:center}
 .login{border:1px solid var(--outline);border-radius:var(--r-m);padding:24px;display:grid;gap:16px}
 .login h2{font-size:1.125rem;margin:0}
@@ -129,7 +134,7 @@ footer button{justify-self:start;background:none;border:0;padding:0;min-height:2
   </div>
 
   <footer>
-    <span>「応募を依頼」「カレンダーに追加」は翌朝9時の処理でClaudeが対応する。応募フォームの送信だけは、送る直前に確認する。</span>
+    <span>「カレンダーに追加」は翌朝9時の処理でClaudeが登録する。「応募を依頼」を押すと、Claudeが応募メールの下書きをその実験のカードに用意する。中身を見て、メールアプリから汝が送る。</span>
     <button type="button" id="logout" hidden>この端末のトークンを消す</button>
   </footer>
 </div>
@@ -201,6 +206,17 @@ function render(){
     const acts=[];
     if(it.kind==='event'||it.kind==='experiment'||(it.kind==='lab'&&it.when)) acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="calendar" aria-pressed="${!!r.calendar}">${svg(r.calendar?'check':'cal')}${r.calendar?'カレンダー登録を依頼済み':'カレンダーに追加'}</button>`);
     if(it.kind==='experiment') acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="apply" aria-pressed="${!!r.apply}">${svg(r.apply?'check':'send')}${r.apply?'応募を依頼済み':'応募を依頼'}</button>`);
+    const dr=r.draft;
+    const mailto=dr?`mailto:${encodeURIComponent(dr.to)}?subject=${encodeURIComponent(dr.subject)}&body=${encodeURIComponent(dr.body)}`:'';
+    const draftHtml=dr?`<div class="draft">
+        <h3>${svg('send')}応募メールの下書き</h3>
+        <dl class="facts"><div><dt>宛先</dt><dd>${esc(dr.to)}</dd></div><div><dt>件名</dt><dd>${esc(dr.subject)}</dd></div></dl>
+        <pre class="mail">${esc(dr.body)}</pre>
+        ${dr.note?`<p class="reason"><b>送る前に</b> ${esc(dr.note)}</p>`:''}
+        <div class="actions">${r.applySent
+          ?`<span class="sent">${svg('check')}送信済み。返信の確認とカレンダー登録はClaudeが行う</span>`
+          :`<a class="act" href="${esc(mailto)}">${svg('send')}メールアプリで開いて送る</a><button class="act" data-id="${esc(it.id)}" data-a="applySent" aria-pressed="false">${svg('check')}送信した</button>`}</div>
+      </div>`:'';
     return `<li class="card">
       <div class="meta"><span class="tag">${svg(k[1])}${k[0]}</span><span class="tag">${esc(it.category)}</span>${it.novel?`<span class="tag novel">${svg('compass')}新しい分野</span>`:''}</div>
       <h2><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}${svg('ext')}<span class="sr">新しいタブで開きます</span></a></h2>
@@ -212,6 +228,7 @@ function render(){
         <span class="scoretxt">${r.score?LABEL[r.score]:'未評価'}</span>
         <div class="actions">${acts.join('')}</div>
       </div>
+      ${draftHtml}
       <div class="comment">
         <label for="c-${esc(it.id)}">ひとこと（もっとこういうのが読みたい、など）</label>
         <textarea id="c-${esc(it.id)}" data-id="${esc(it.id)}">${esc(r.comment??'')}</textarea>
