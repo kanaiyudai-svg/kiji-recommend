@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>今日の20本</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#ffffff; --surface:#f6f7f9; --surface-2:#eceef1;
+  --text:#1b1c1e; --text-2:#494b4f; --text-3:#63666b;
+  --outline:#74767b; --outline-variant:#d9dbdf;
+  --accent:#35618e; --accent-container:#e3edf9; --on-accent-container:#16324f;
+  --inverse:#1b1c1e; --on-inverse:#ffffff;
+  --font:system-ui,-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;
+  --r-s:8px; --r-m:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --bg:#16181c; --surface:#1e2126; --surface-2:#282c32;
+    --text:#eceef1; --text-2:#c0c3c8; --text-3:#9fa3a9;
+    --outline:#8a8d93; --outline-variant:#34383e;
+    --accent:#a8c7ea; --accent-container:#223549; --on-accent-container:#d3e3f8;
+    --inverse:#eceef1; --on-inverse:#16181c;
+  }
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:1ms!important}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:1rem;line-height:1.7;letter-spacing:.02em;-webkit-text-size-adjust:100%}
+.wrap{max-width:46rem;margin:0 auto;padding-inline:16px;padding-block:calc(32px + env(safe-area-inset-top,0px)) calc(64px + env(safe-area-inset-bottom,0px))}
+@media (min-width:600px){.wrap{padding-inline:24px}}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+h1{font-size:1.5rem;line-height:1.4;margin:0}
+.sub{color:var(--text-3);font-size:.875rem;margin:0}
+.nav{display:flex;align-items:center;gap:8px}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;border:1px solid var(--outline);border-radius:var(--r-s);background:var(--bg);color:var(--text);cursor:pointer}
+.date{font-variant-numeric:tabular-nums;font-weight:700;min-width:9em;text-align:center}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.progress{display:flex;align-items:center;gap:16px;margin-bottom:24px;color:var(--text-2);font-size:.875rem}
+.bar{flex:1;height:4px;background:var(--surface-2);border-radius:9999px;overflow:hidden}
+.bar>span{display:block;height:100%;background:var(--accent)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.chipbtn{min-height:44px;padding:0 14px;border:1px solid var(--outline);border-radius:var(--r-s);background:var(--bg);color:var(--text);font:inherit;font-size:.875rem;cursor:pointer}
+.chipbtn[aria-pressed="true"]{background:var(--inverse);color:var(--on-inverse);border-color:var(--inverse)}
+ul.list{list-style:none;margin:0;padding:0;display:grid;gap:16px}
+.card{border:1px solid var(--outline);border-radius:var(--r-m);background:var(--bg);padding:20px 16px;display:grid;gap:12px}
+@media (min-width:600px){.card{padding:24px}}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:.875rem;color:var(--text-2)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:0 8px;height:26px;border-radius:6px;background:var(--surface-2);color:var(--text)}
+.tag.novel{background:var(--accent-container);color:var(--on-accent-container)}
+.tag svg.i{width:14px;height:14px}
+.card h2{font-size:1.125rem;line-height:1.5;margin:0;text-wrap:balance}
+.card h2 a{color:var(--text);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--outline)}
+.card h2 svg.i{width:16px;height:16px;vertical-align:-2px;margin-left:4px;color:var(--text-3)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.summary{margin:0}
+.reason{margin:0;font-size:.875rem;color:var(--text-2)}
+.reason b{color:var(--text)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;font-size:.875rem;color:var(--text-2)}
+.facts div{display:flex;gap:6px}.facts dt{color:var(--text-3)}.facts dd{margin:0;color:var(--text)}
+.rate{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding-top:12px;border-top:1px solid var(--outline-variant)}
+.stars{display:flex}
+.star{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border:0;background:none;color:var(--outline);cursor:pointer;border-radius:var(--r-s)}
+.star svg.i{width:26px;height:26px}
+.star.on{color:var(--accent)}.star.on svg.i{fill:currentColor}
+.scoretxt{font-size:.875rem;color:var(--text-2);min-width:6em}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.act{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1px solid var(--outline);border-radius:var(--r-s);background:var(--bg);color:var(--text);font:inherit;font-size:.875rem;cursor:pointer}
+.act[aria-pressed="true"]{background:var(--inverse);color:var(--on-inverse);border-color:var(--inverse)}
+.comment{display:grid;gap:6px}
+.comment label,.field label{font-size:.875rem;color:var(--text-2)}
+textarea,input[type=password]{font:inherit;font-size:1rem;padding:8px 12px;border:1px solid var(--outline);border-radius:var(--r-s);background:var(--surface);color:var(--text)}
+textarea{min-height:3.2em;resize:vertical}
+.saved{font-size:.875rem;color:var(--text-3);min-height:1.5em}
+.status{padding:24px;border:1px solid var(--outline);border-radius:var(--r-m);color:var(--text-2);display:flex;gap:8px;align-items:center}
+.login{border:1px solid var(--outline);border-radius:var(--r-m);padding:24px;display:grid;gap:16px}
+.login h2{font-size:1.125rem;margin:0}
+.login p{margin:0;font-size:.875rem;color:var(--text-2)}
+.field{display:grid;gap:6px}
+.primary{min-height:48px;padding:0 20px;border:0;border-radius:var(--r-s);background:var(--inverse);color:var(--on-inverse);font:inherit;font-weight:700;cursor:pointer;justify-self:start}
+.err{color:var(--text);font-size:.875rem;margin:0}
+footer{margin-top:32px;font-size:.875rem;color:var(--text-3);display:grid;gap:8px}
+footer button{justify-self:start;background:none;border:0;padding:0;min-height:24px;color:var(--text-2);text-decoration:underline;font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>今日の20本</h1>
+      <p class="sub">毎朝9時に更新。星をつけると翌朝の選定に反映される</p>
+    </div>
+    <div class="nav">
+      <button class="iconbtn" id="prev" aria-label="前の日" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+      <span class="date" id="date"></span>
+      <button class="iconbtn" id="next" aria-label="次の日" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+  </header>
+
+  <form class="login" id="login" hidden>
+    <h2>この端末をつなぐ</h2>
+    <p>記事と評価は非公開のリポジトリにある。GitHubで作ったアクセストークンを一度だけ入れると、この端末から読み書きできる。トークンはこの端末の中にだけ保存される。</p>
+    <div class="field">
+      <label for="token">アクセストークン（github_pat_ で始まる文字列）</label>
+      <input type="password" id="token" autocomplete="off" spellcheck="false">
+    </div>
+    <p class="err" id="loginerr" hidden></p>
+    <button class="primary" type="submit">つなぐ</button>
+  </form>
+
+  <div id="app" hidden>
+    <div class="progress" aria-live="polite"><span id="progtxt">評価 0 / 0</span><div class="bar"><span id="progbar" style="width:0"></span></div></div>
+    <div class="filters" role="group" aria-label="種類で絞り込み">
+      <button class="chipbtn" data-f="all" aria-pressed="true">すべて</button>
+      <button class="chipbtn" data-f="article" aria-pressed="false">読み物</button>
+      <button class="chipbtn" data-f="event" aria-pressed="false">催し・展覧会</button>
+      <button class="chipbtn" data-f="experiment" aria-pressed="false">実験参加</button>
+      <button class="chipbtn" data-f="lab" aria-pressed="false">大学院・研究室</button>
+      <button class="chipbtn" data-f="unrated" aria-pressed="false">未評価</button>
+    </div>
+    <main>
+      <div class="status" id="status"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg><span id="statustxt">記事を読み込んでいます</span></div>
+      <ul class="list" id="list"></ul>
+    </main>
+  </div>
+
+  <footer>
+    <span>「応募を依頼」「カレンダーに追加」は翌朝9時の処理でClaudeが対応する。応募フォームの送信だけは、送る直前に確認する。</span>
+    <button type="button" id="logout" hidden>この端末のトークンを消す</button>
+  </footer>
+</div>
+
+<script>
+const OWNER='kanaiyudai-svg', REPO='kiji-data';
+const API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/`;
+const TK='kiji_token';
+const store={get(){try{return localStorage.getItem(TK)}catch(e){return null}},set(v){try{localStorage.setItem(TK,v)}catch(e){}},del(){try{localStorage.removeItem(TK)}catch(e){}}};
+let token=store.get();
+
+const IC={
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  ext:'<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  cal:'<path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M16 19h6"/><path d="M19 16v6"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  compass:'<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  book:'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
+  ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+  flask:'<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>',
+  cap:'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>'
+};
+const svg=k=>`<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${IC[k]}</svg>`;
+const KIND={article:['読み物','book'],event:['催し・展覧会','ticket'],experiment:['実験参加','flask'],lab:['大学院・研究室','cap']};
+const LABEL=['','合わない','いまいち','ふつう','良い','とても良い'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+
+// base64 <-> UTF-8
+const b64dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+const b64enc=s=>{const u=new TextEncoder().encode(s);let bin='';for(let i=0;i<u.length;i+=0x8000)bin+=String.fromCharCode(...u.subarray(i,i+0x8000));return btoa(bin);};
+
+class AuthError extends Error{}
+async function gh(path,opt={}){
+  const r=await fetch(API+path,{...opt,cache:'no-store',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opt.body?{'Content-Type':'application/json'}:{})}});
+  if(r.status===401||r.status===403) throw new AuthError(r.status);
+  return r;
+}
+async function readJson(path){
+  const r=await gh(path);
+  if(r.status===404) return {data:null,sha:null};
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  return {data:JSON.parse(b64dec(j.content)),sha:j.sha};
+}
+
+let dates=[], idx=0, day=null, ratings={}, rsha=null, filter='all', dayCache={};
+
+function fmtDate(d){const t=new Date(d+'T12:00:00');return `${t.getMonth()+1}月${t.getDate()}日 ${'日月火水木金土'[t.getDay()]}曜`;}
+
+function render(){
+  $('prev').hidden = idx>=dates.length-1;
+  $('next').hidden = idx<=0;
+  if(!day) return;
+  $('date').textContent=fmtDate(day.date);
+  const items=day.items||[];
+  const rated=items.filter(it=>ratings[it.id]?.score).length;
+  $('progtxt').textContent=`評価 ${rated} / ${items.length}`;
+  $('progbar').style.width=items.length?(rated/items.length*100)+'%':'0';
+  $('status').hidden=true;
+  const shown=items.filter(it=>filter==='all'||(filter==='unrated'?!ratings[it.id]?.score:it.kind===filter));
+  const focusId=document.activeElement?.tagName==='TEXTAREA'?document.activeElement.id:null;
+  const draft=focusId?document.activeElement.value:null;
+  $('list').innerHTML=shown.map(it=>{
+    const r=ratings[it.id]||{}; const k=KIND[it.kind]||KIND.article;
+    const facts=[['出典',it.source],['読了',it.readMin?`約${it.readMin}分`:''],['言語',it.lang],['日時',it.when],['場所',it.place],['謝礼',it.reward],['締切',it.deadline],['所属',it.affiliation],['入試',it.exam]].filter(f=>f[1]);
+    const stars=[1,2,3,4,5].map(n=>`<button class="star ${r.score>=n?'on':''}" data-id="${esc(it.id)}" data-s="${n}" aria-label="${n}点 ${LABEL[n]}" aria-pressed="${r.score===n}">${svg('star')}</button>`).join('');
+    const acts=[];
+    if(it.kind==='event'||it.kind==='experiment'||(it.kind==='lab'&&it.when)) acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="calendar" aria-pressed="${!!r.calendar}">${svg(r.calendar?'check':'cal')}${r.calendar?'カレンダー登録を依頼済み':'カレンダーに追加'}</button>`);
+    if(it.kind==='experiment') acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="apply" aria-pressed="${!!r.apply}">${svg(r.apply?'check':'send')}${r.apply?'応募を依頼済み':'応募を依頼'}</button>`);
+    return `<li class="card">
+      <div class="meta"><span class="tag">${svg(k[1])}${k[0]}</span><span class="tag">${esc(it.category)}</span>${it.novel?`<span class="tag novel">${svg('compass')}新しい分野</span>`:''}</div>
+      <h2><a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}${svg('ext')}<span class="sr">新しいタブで開きます</span></a></h2>
+      <p class="summary">${esc(it.summary)}</p>
+      <p class="reason"><b>選んだ理由</b> ${esc(it.reason)}</p>
+      <dl class="facts">${facts.map(f=>`<div><dt>${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>
+      <div class="rate">
+        <div class="stars" role="group" aria-label="評価">${stars}</div>
+        <span class="scoretxt">${r.score?LABEL[r.score]:'未評価'}</span>
+        <div class="actions">${acts.join('')}</div>
+      </div>
+      <div class="comment">
+        <label for="c-${esc(it.id)}">ひとこと（もっとこういうのが読みたい、など）</label>
+        <textarea id="c-${esc(it.id)}" data-id="${esc(it.id)}">${esc(r.comment??'')}</textarea>
+        <span class="saved" id="s-${esc(it.id)}"></span>
+      </div>
+    </li>`;}).join('') || '<li class="status">この条件に当てはまる項目はない</li>';
+  if(focusId&&$(focusId)){$(focusId).value=draft;$(focusId).focus();}
+}
+
+// 評価の保存: 最新を読み直し、自分の変更だけを重ねて書く（他の端末の評価を消さない）
+let chain=Promise.resolve();
+function save(id,patch,showMsg){
+  if(!day) return;
+  const date=day.date;
+  ratings={...ratings,[id]:{...(ratings[id]||{}),...patch,at:new Date().toISOString()}};
+  const mine=ratings[id];
+  render();
+  chain=chain.then(async()=>{
+    for(let attempt=0;attempt<3;attempt++){
+      const cur=await readJson(`ratings/${date}.json`);
+      const merged={...(cur.data||{}),[id]:{...((cur.data||{})[id]||{}),...mine}};
+      const body={message:`rate ${date} ${id}`,content:b64enc(JSON.stringify(merged,null,1)),...(cur.sha?{sha:cur.sha}:{})};
+      const r=await gh(`ratings/${date}.json`,{method:'PUT',body:JSON.stringify(body)});
+      if(r.ok){ if(day&&day.date===date){ratings={...ratings,...merged};} if(showMsg&&$('s-'+id)) $('s-'+id).textContent='保存した'; return; }
+      if(r.status!==409&&r.status!==422) break;
+    }
+    throw new Error('save');
+  }).catch(e=>{
+    if(e instanceof AuthError){showLogin('トークンが無効か期限切れになっている。新しいトークンを入れてほしい');return;}
+    const m=$('s-'+id); if(m) m.textContent='保存できなかった。通信を確認して、もう一度押してほしい';
+  });
+}
+
+document.addEventListener('click',e=>{
+  const s=e.target.closest('.star'); if(s){const id=s.dataset.id,n=+s.dataset.s; save(id,{score:(ratings[id]?.score===n?0:n)}); return;}
+  const a=e.target.closest('.act'); if(a){const id=a.dataset.id,k=a.dataset.a; save(id,{[k]:!ratings[id]?.[k]}); return;}
+  const f=e.target.closest('.chipbtn'); if(f){filter=f.dataset.f; document.querySelectorAll('.chipbtn').forEach(b=>b.setAttribute('aria-pressed',b===f)); render(); return;}
+});
+document.addEventListener('focusout',e=>{
+  const t=e.target; if(t.tagName!=='TEXTAREA') return;
+  const id=t.dataset.id; if((ratings[id]?.comment||'')===t.value) return;
+  save(id,{comment:t.value},true);
+});
+$('prev').onclick=()=>{if(idx<dates.length-1){idx++;openDay();}};
+$('next').onclick=()=>{if(idx>0){idx--;openDay();}};
+
+async function openDay(){
+  const date=dates[idx];
+  $('status').hidden=false; $('statustxt').textContent='記事を読み込んでいます';
+  try{
+    if(!dayCache[date]) dayCache[date]=(await readJson(`days/${date}.json`)).data;
+    const rr=await readJson(`ratings/${date}.json`);
+    day=dayCache[date]; ratings=rr.data||{}; rsha=rr.sha;
+    render();
+  }catch(e){
+    if(e instanceof AuthError) return showLogin('トークンが無効か期限切れになっている。新しいトークンを入れてほしい');
+    $('statustxt').textContent='読み込めなかった。通信を確認してページを開き直してほしい';
+  }
+}
+
+async function start(){
+  $('login').hidden=true; $('app').hidden=false; $('logout').hidden=false;
+  try{
+    const r=await gh('days');
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    dates=(await r.json()).map(f=>f.name.replace(/\.json$/,'')).filter(n=>/^\d{4}-\d{2}-\d{2}$/.test(n)).sort().reverse();
+    if(!dates.length){$('statustxt').textContent='まだ記事がない。毎朝9時に届く';return;}
+    idx=0; await openDay();
+  }catch(e){
+    if(e instanceof AuthError) return showLogin('トークンが無効か、kiji-data への権限が足りない。Contents の Read and write を付けたトークンを入れてほしい');
+    $('statustxt').textContent='読み込めなかった。通信を確認してページを開き直してほしい';
+  }
+}
+function showLogin(msg){
+  $('app').hidden=true; $('login').hidden=false; $('logout').hidden=true;
+  $('loginerr').hidden=!msg; $('loginerr').textContent=msg?'＊'+msg:'';
+  $('token').focus();
+}
+$('login').addEventListener('submit',e=>{
+  e.preventDefault();
+  const v=$('token').value.trim();
+  if(!v){$('loginerr').hidden=false;$('loginerr').textContent='＊トークンを入れてほしい';return;}
+  token=v; store.set(v); $('token').value=''; start();
+});
+$('logout').onclick=()=>{store.del(); token=null; showLogin();};
+
+// 別の端末で付けた評価を拾うため、画面に戻ってきたら読み直す
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&day&&document.activeElement?.tagName!=='TEXTAREA') openDay();});
+
+token?start():showLogin();
+</script>
+</body>
+</html>
