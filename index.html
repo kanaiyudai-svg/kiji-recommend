@@ -153,6 +153,7 @@ const IC={
   send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
   compass:'<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
   check:'<path d="M20 6 9 17l-5-5"/>',
+  copy:'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   book:'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
   ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
   flask:'<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>',
@@ -208,6 +209,7 @@ function render(){
     if(it.kind==='experiment') acts.push(`<button class="act" data-id="${esc(it.id)}" data-a="apply" aria-pressed="${!!r.apply}">${svg(r.apply?'check':'send')}${r.apply?'応募を依頼済み':'応募を依頼'}</button>`);
     const dr=r.draft;
     const mailto=dr?`mailto:${encodeURIComponent(dr.to)}?subject=${encodeURIComponent(dr.subject)}&body=${encodeURIComponent(dr.body)}`:'';
+    const gmail=dr?`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(dr.to)}&su=${encodeURIComponent(dr.subject)}&body=${encodeURIComponent(dr.body)}`:'';
     const draftHtml=dr?`<div class="draft">
         <h3>${svg('send')}応募メールの下書き</h3>
         <dl class="facts"><div><dt>宛先</dt><dd>${esc(dr.to)}</dd></div><div><dt>件名</dt><dd>${esc(dr.subject)}</dd></div></dl>
@@ -215,7 +217,8 @@ function render(){
         ${dr.note?`<p class="reason"><b>送る前に</b> ${esc(dr.note)}</p>`:''}
         <div class="actions">${r.applySent
           ?`<span class="sent">${svg('check')}送信済み。返信の確認とカレンダー登録はClaudeが行う</span>`
-          :`<a class="act" href="${esc(mailto)}">${svg('send')}メールアプリで開いて送る</a><button class="act" data-id="${esc(it.id)}" data-a="applySent" aria-pressed="false">${svg('check')}送信した</button>`}</div>
+          :`<a class="act" href="${esc(gmail)}" target="_blank" rel="noopener">${svg('send')}Gmailで開いて送る</a><a class="act" href="${esc(mailto)}">${svg('send')}ほかのメールアプリで開く</a><button class="act" type="button" data-copy="${esc(it.id)}">${svg('copy')}本文をコピー</button><button class="act" data-id="${esc(it.id)}" data-a="applySent" aria-pressed="false">${svg('check')}送信した</button>`}</div>
+        <span class="saved" id="cp-${esc(it.id)}" aria-live="polite"></span>
       </div>`:'';
     return `<li class="card">
       <div class="meta"><span class="tag">${svg(k[1])}${k[0]}</span><span class="tag">${esc(it.category)}</span>${it.novel?`<span class="tag novel">${svg('compass')}新しい分野</span>`:''}</div>
@@ -239,9 +242,15 @@ function render(){
 }
 
 // 評価の保存: 最新を読み直し、自分の変更だけを重ねて書く（他の端末の評価を消さない）
+async function copyDraft(btn){
+  const id=btn.dataset.copy, dr=ratings[id]?.draft, msg=$('cp-'+id); if(!dr) return;
+  const text=`宛先: ${dr.to}\n件名: ${dr.subject}\n\n${dr.body}`;
+  try{ await navigator.clipboard.writeText(text); if(msg) msg.textContent='宛先・件名・本文をコピーした'; }
+  catch(e){ const pre=btn.closest('.draft')?.querySelector('.mail'); if(pre){const s=getSelection(),r=document.createRange();r.selectNodeContents(pre);s.removeAllRanges();s.addRange(r);} if(msg) msg.textContent='コピーできなかったので本文を選択した。長押しでコピーしてほしい'; }
+}
 let chain=Promise.resolve();
 function save(id,patch,showMsg){
-  if(!day) return;
+  if(!day||!id||id==='undefined') return;
   const date=day.date;
   ratings={...ratings,[id]:{...(ratings[id]||{}),...patch,at:new Date().toISOString()}};
   const mine=ratings[id];
@@ -264,7 +273,8 @@ function save(id,patch,showMsg){
 
 document.addEventListener('click',e=>{
   const s=e.target.closest('.star'); if(s){const id=s.dataset.id,n=+s.dataset.s; save(id,{score:(ratings[id]?.score===n?0:n)}); return;}
-  const a=e.target.closest('.act'); if(a){const id=a.dataset.id,k=a.dataset.a; save(id,{[k]:!ratings[id]?.[k]}); return;}
+  const c=e.target.closest('button[data-copy]'); if(c){copyDraft(c); return;}
+  const a=e.target.closest('button.act[data-a]'); if(a){const id=a.dataset.id,k=a.dataset.a; if(!id||!k) return; save(id,{[k]:!ratings[id]?.[k]}); return;}
   const f=e.target.closest('.chipbtn'); if(f){filter=f.dataset.f; document.querySelectorAll('.chipbtn').forEach(b=>b.setAttribute('aria-pressed',b===f)); render(); return;}
 });
 document.addEventListener('focusout',e=>{
