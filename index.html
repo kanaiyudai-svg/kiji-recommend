@@ -97,7 +97,7 @@ footer button{justify-self:start;background:none;border:0;padding:0;min-height:2
   <header>
     <div>
       <h1>今日の23本</h1>
-      <p class="sub">毎朝9時に更新。記事など20本と奨学金3件。星をつけると翌朝の選定に反映される</p>
+      <p class="sub">毎朝9時に更新。記事など20本と奨学金3件。ボタンや星は毎日9時と21時にClaudeが処理する</p>
     </div>
     <div class="nav">
       <button class="iconbtn" id="prev" aria-label="前の日" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
@@ -135,7 +135,7 @@ footer button{justify-self:start;background:none;border:0;padding:0;min-height:2
   </div>
 
   <footer>
-    <span>「カレンダーに追加」は翌朝9時の処理でClaudeが登録する。「応募を依頼」を押すと、Claudeが応募メールの下書きをその実験のカードに用意する。中身を見て、メールアプリから汝が送る。</span>
+    <span>ボタンは毎日9時と21時にClaudeがまとめて処理する。「カレンダーに追加」は登録、「応募を依頼」は応募メールの下書きをその実験のカードに用意する。中身を見て、メールアプリから汝が送る。</span>
     <button type="button" id="logout" hidden>この端末のトークンを消す</button>
   </footer>
 </div>
@@ -225,7 +225,7 @@ function render(){
       </div>`:'';
     const sch=(it.kind==='scholarship'&&r.interest)?`<div class="draft">
         <h3>${svg('wallet')}概要と条件の確認</h3>
-        ${r.detail?`<pre class="mail">${esc(r.detail)}</pre>${r.vaultPath?`<p class="reason"><b>Vault</b> ${esc(r.vaultPath)}</p>`:''}`:`<p class="reason">翌朝9時の処理で、Claudeが概要をまとめてこことVaultに載せる。</p>`}
+        ${r.detail?`<pre class="mail">${esc(r.detail)}</pre>${r.vaultPath?`<p class="reason"><b>Vault</b> ${esc(r.vaultPath)}</p>`:''}`:`<p class="reason">次の処理（9時か21時）で、Claudeが概要をまとめてこことVaultに載せる。</p>`}
         ${r.nextStep?`<p class="reason"><b>次にやること</b> ${esc(r.nextStep)}</p>`:''}
         <div class="actions" role="group" aria-label="条件に合うか">${[['fit','条件に合う'],['unfit','合わない'],['unknown','分からない']].map(([v,l])=>`<button class="act" type="button" data-id="${esc(it.id)}" data-fit="${v}" aria-pressed="${r.fit===v}">${r.fit===v?svg('check'):''}${l}</button>`).join('')}</div>
         <div class="comment">
